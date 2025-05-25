@@ -15,6 +15,7 @@ public class TankGame2025 extends Application {
         int sceneWidth = 1000;
         int sceneHeight = 1000;
         Map map = new Map(main, sceneWidth, sceneHeight);
+        map.createExtraWalls(main);
 
         ImageView tank = new ImageView();
         tank.setImage(new Image(getClass().getResource("/yellowTank1.png").toExternalForm()));
