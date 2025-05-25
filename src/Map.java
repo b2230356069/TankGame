@@ -1,0 +1,51 @@
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
+import java.util.ArrayList;
+
+public class Map {
+    private final int blockSize = 25;
+    private final int width;
+    private final int height;
+    private final Image wall;
+    private final ArrayList<ImageView> walls = new ArrayList<>();
+
+    public Map( Pane pane, int width, int height) {
+        this.width = width;
+        this.height = height;
+        wall = new Image(getClass().getResource("/wall.png").toExternalForm());
+        createWall(pane);
+    }
+
+    public void createWall(Pane pane) {
+
+        for (int y = 0; y < height; y+=blockSize) {
+            ImageView leftWall = uploadWall(0,y);
+            ImageView rightWall = uploadWall(width-blockSize,y);
+            pane.getChildren().addAll(leftWall, rightWall);
+            walls.add(leftWall);
+            walls.add(rightWall);
+        }
+
+        for (int x = 0; x < height; x+=blockSize) {
+            ImageView upWall = uploadWall(x,0);
+            ImageView downWall = uploadWall (x, height-blockSize);
+            pane.getChildren().addAll(upWall, downWall);
+            walls.add(upWall);
+            walls.add(downWall);
+        }
+    }
+
+    private ImageView uploadWall(int x, int y) {
+        ImageView w = new ImageView(wall);
+        w.setFitHeight(blockSize);
+        w.setFitWidth(blockSize);
+        w.setX(x);
+        w.setY(y);
+        return w;
+    }
+
+    public ArrayList<ImageView> getWalls() {
+        return walls;
+    }
+}
