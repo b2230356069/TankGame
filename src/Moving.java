@@ -1,9 +1,13 @@
 import javafx.animation.AnimationTimer;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
+import javafx.util.Duration;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -89,8 +93,8 @@ public class Moving {
 
     private static void shoot(Pane main, ImageView tank, ArrayList<ImageView> bullets, ArrayList<ImageView> walls) {
         ImageView bullet = new ImageView(bulletImage);
-        bullet.setFitWidth(10);
-        bullet.setFitHeight(10);
+        bullet.setFitWidth(5);
+        bullet.setFitHeight(5);
 
         double tankCenterX = tank.getX() + tank.getFitWidth() / 2;
         double tankCenterY = tank.getY() + tank.getFitHeight() / 2;
@@ -120,6 +124,19 @@ public class Moving {
                     if (bullet.getBoundsInParent().intersects(wall.getBoundsInParent())) {
                         main.getChildren().remove(bullet);
                         bullets.remove(bullet);
+
+                        Image explosionImage = new Image(Moving.class.getResource("/smallExplosion.png").toExternalForm());
+                        ImageView explosion = new ImageView(explosionImage);
+                        explosion.setFitWidth(10);
+                        explosion.setFitHeight(10);
+                        explosion.setX(bullet.getX());
+                        explosion.setY(bullet.getY());
+                        main.getChildren().add(explosion);
+
+                        new Timeline(new KeyFrame(Duration.millis(300), e -> {
+                            main.getChildren().remove(explosion);
+                        })).play();
+
                         stop();
                         return;
                     }
