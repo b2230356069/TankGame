@@ -6,6 +6,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
+
 public class TankGame2025 extends Application {
 
     public void start(Stage firstStage) {
@@ -29,10 +31,14 @@ public class TankGame2025 extends Application {
         main.getChildren().add(tank);
 
         Scene scene = new Scene(main, 500, 500);
+        ArrayList<ImageView> bullets = new ArrayList<>();
+        ArrayList<ImageView> walls = new ArrayList<>();
+        Animation animation = new Animation(tank);
+
         scene.setFill(Color.BLACK);
 
-        Animation animation = new Animation(tank);
-        Move.moveTank(scene, tank, animation, map.getWalls(), main);
+        Moving.moveTank(scene, tank, animation, map.getWalls(), main, bullets);
+
         firstStage.setScene(scene);
         firstStage.show();
     }

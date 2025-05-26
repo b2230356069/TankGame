@@ -2,7 +2,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import java.util.ArrayList;
-import java.util.List;
 
 public class Map {
     private final int blockSize = 25;
