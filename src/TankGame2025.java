@@ -3,6 +3,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class TankGame2025 extends Application {
@@ -10,7 +11,6 @@ public class TankGame2025 extends Application {
     public void start(Stage firstStage) {
 
         Pane main = new Pane();
-        main.setStyle("-fx-background-color: black;");
 
         int sceneWidth = 1000;
         int sceneHeight = 1000;
@@ -29,11 +29,20 @@ public class TankGame2025 extends Application {
         main.getChildren().add(tank);
 
         Scene scene = new Scene(main, 500, 500);
+        scene.setFill(Color.BLACK);
 
         Animation animation = new Animation(tank);
-        Move.moveTank(scene, tank, animation, map.getWalls());
+        Move.moveTank(scene, tank, animation, map.getWalls(), main);
         firstStage.setScene(scene);
         firstStage.show();
+    }
+
+    public static void updateCamera(Pane main, ImageView tank, Scene scene) {
+        double newX = scene.getWidth() / 2 - (tank.getX() + tank.getFitWidth() / 2);
+        double newY = scene.getHeight() / 2 - (tank.getY() + tank.getFitHeight() / 2);
+
+        main.setTranslateX(newX);
+        main.setTranslateY(newY);
     }
 
     public static void main(String[] args) {

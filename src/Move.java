@@ -1,10 +1,11 @@
 import javafx.scene.Scene;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Pane;
 import java.util.ArrayList;
 
 public class Move {
-    public static void moveTank(Scene scene, ImageView tank, Animation animation, ArrayList<ImageView> walls) {
+    public static void moveTank(Scene scene, ImageView tank, Animation animation, ArrayList<ImageView> walls, Pane main) {
 
         scene.setOnKeyPressed(event -> {
 
@@ -50,6 +51,7 @@ public class Move {
                 tank.setX(tank.getX() + dx);
                 tank.setY(tank.getY() + dy);
                 animation.start();
+                TankGame2025.updateCamera(main, tank, scene);
             } else {
                 animation.stop();
             }
