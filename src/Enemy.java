@@ -16,6 +16,7 @@ public class Enemy {
     private Random random = new Random();
     private Pane pane;
     private ArrayList<ImageView> walls;
+    private EnemyAnimation animation;
 
     public Enemy(Pane pane, double x, double y, ArrayList<ImageView> walls) {
         this.pane = pane;
@@ -31,6 +32,10 @@ public class Enemy {
         enemyTankView.setY(y);
 
         pane.getChildren().add(enemyTankView);
+
+        animation = new EnemyAnimation(enemyTankView);
+        animation.start();
+
         setRandomDirection();
         startMoving();
     }
