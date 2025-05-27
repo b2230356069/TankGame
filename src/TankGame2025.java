@@ -30,7 +30,7 @@ public class TankGame2025 extends Application {
 
         main.getChildren().add(tank);
 
-        Scene scene = new Scene(main, 500, 500);
+        Scene scene = new Scene(main, 750, 750);
         ArrayList<ImageView> bullets = new ArrayList<>();
         ArrayList<ImageView> walls = new ArrayList<>();
         Animation animation = new Animation(tank);
@@ -38,6 +38,9 @@ public class TankGame2025 extends Application {
         scene.setFill(Color.BLACK);
 
         Moving.moveTank(scene, tank, animation, map.getWalls(), main, bullets);
+
+        Enemy enemy1 = new Enemy(main, 100, 100, map.getWalls());
+        Enemy enemy2 = new Enemy(main, 700, 700, map.getWalls());
 
         firstStage.setScene(scene);
         firstStage.show();

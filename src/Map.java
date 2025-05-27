@@ -27,7 +27,7 @@ public class Map {
             walls.add(rightWall);
         }
 
-        for (int x = 0; x < height; x+=blockSize) {
+        for (int x = 0; x < width; x+=blockSize) {
             ImageView upWall = uploadWall(x,0);
             ImageView downWall = uploadWall (x, height-blockSize);
             pane.getChildren().addAll(upWall, downWall);
