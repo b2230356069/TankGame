@@ -60,7 +60,8 @@ public class Enemy {
     private void startMoving() {
         AnimationTimer timer = new AnimationTimer() {
 
-            private int directionChangeCounter = 0;
+            private int changeIntervalMillis = (int) (getRandomIntervalSeconds() * 1000);
+            private long lastDirectionChangeTimeMillis = System.currentTimeMillis();
 
             public void handle(long now) {
                 double nextX = x + dx * speed;
@@ -81,19 +82,24 @@ public class Enemy {
                     enemyTankView.setX(x);
                     enemyTankView.setY(y);
                     setRandomDirection();
+                    lastDirectionChangeTimeMillis = now;
+                    changeIntervalMillis = (int) (getRandomIntervalSeconds() * 1000);
                 } else if (nextX < 0 || nextX > pane.getWidth() - enemyTankView.getFitWidth()
                         || nextY < 0 || nextY > pane.getHeight() - enemyTankView.getFitHeight()) {
                     enemyTankView.setX(x);
                     enemyTankView.setY(y);
                     setRandomDirection();
+                    lastDirectionChangeTimeMillis = now;
+                    changeIntervalMillis = (int) (getRandomIntervalSeconds() * 1000);
                 } else {
                     x = nextX;
                     y = nextY;
                 }
 
-                directionChangeCounter++;
-                if (directionChangeCounter % 300 == 0) {
+                if (System.currentTimeMillis() - lastDirectionChangeTimeMillis > changeIntervalMillis) {
                     setRandomDirection();
+                    lastDirectionChangeTimeMillis = System.currentTimeMillis();
+                    changeIntervalMillis = (int) (getRandomIntervalSeconds() * 1000);
                 }
             }
         };
@@ -101,9 +107,16 @@ public class Enemy {
     }
 
     private void startShooting() {
-        shootingTimer = new Timeline(new KeyFrame(Duration.seconds(2), e -> shoot()));
-        shootingTimer.setCycleCount(Timeline.INDEFINITE);
+        shootingTimer = new Timeline(new KeyFrame(Duration.seconds(getRandomIntervalSeconds()), e -> {
+            shoot();
+            startShooting();
+        }));
+        shootingTimer.setCycleCount(1);
         shootingTimer.play();
+    }
+
+    private double getRandomIntervalSeconds() {
+        return 1 + random.nextDouble() * 4;
     }
 
     private void shoot() {
