@@ -26,7 +26,7 @@ public class Moving {
             pressedKeys.add(event.getCode());
 
             if (event.getCode() == KeyCode.X && !isShooting) {
-                shoot(main, tank, bullets, walls);
+                shoot(main, tank, bullets, walls, TankGame2025.getEnemies());
                 isShooting = true;
             }
         });
@@ -91,7 +91,7 @@ public class Moving {
 
     }
 
-    private static void shoot(Pane main, ImageView tank, ArrayList<ImageView> bullets, ArrayList<ImageView> walls) {
+    private static void shoot(Pane main, ImageView tank, ArrayList<ImageView> bullets, ArrayList<ImageView> walls, ArrayList<Enemy> enemies) {
         ImageView bullet = new ImageView(bulletImage);
         bullet.setFitWidth(5);
         bullet.setFitHeight(5);
@@ -137,6 +137,17 @@ public class Moving {
                             main.getChildren().remove(explosion);
                         })).play();
 
+                        stop();
+                        return;
+                    }
+                }
+
+                for (Enemy enemy : enemies) {
+                    if (enemy.isAlive() && bullet.getBoundsInParent().intersects(enemy.getView().getBoundsInParent())) {
+
+                        enemy.destroy();
+                        main.getChildren().remove(bullet);
+                        bullets.remove(bullet);
                         stop();
                         return;
                     }

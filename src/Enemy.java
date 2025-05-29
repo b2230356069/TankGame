@@ -23,11 +23,15 @@ public class Enemy {
     private Timeline shootingTimer;
     private static final double bulletSpeed = 3;
     private static final Image bulletImage = new Image(Enemy.class.getResource("/bullet.png").toExternalForm());
+    private boolean isAlive = true;
+    private double respawnX, respawnY;
 
     public Enemy(Pane pane, double x, double y, ArrayList<ImageView> walls) {
         this.pane = pane;
         this.x = x;
         this.y = y;
+        this.respawnX = x;
+        this.respawnY = y;
         this.walls = walls;
         enemyTankImage = new Image(getClass().getResource("/whiteTank1.png").toExternalForm());
         enemyTankView = new ImageView(enemyTankImage);
@@ -119,6 +123,10 @@ public class Enemy {
         return 1 + random.nextDouble() * 4;
     }
 
+    public ImageView getView() {
+        return enemyTankView;
+    }
+
     private void shoot() {
         ImageView bullet = new ImageView(bulletImage);
         bullet.setFitWidth(5);
@@ -172,6 +180,72 @@ public class Enemy {
             }
         }.start();
     }
+
+    private void respawn() {
+        Random random = new Random();
+        boolean validPosition = false;
+        double newX = 0, newY = 0;
+
+        while (!validPosition) {
+            newX = random.nextInt((int)(pane.getWidth() - enemyTankView.getFitWidth()));
+            newY = random.nextInt((int)(pane.getHeight() - enemyTankView.getFitHeight()));
+
+            validPosition = true;
+            ImageView tempView = new ImageView();
+            tempView.setX(newX);
+            tempView.setY(newY);
+            tempView.setFitWidth(enemyTankView.getFitWidth());
+            tempView.setFitHeight(enemyTankView.getFitHeight());
+
+            for (ImageView wall : walls) {
+                if (tempView.getBoundsInParent().intersects(wall.getBoundsInParent())) {
+                    validPosition = false;
+                    break;
+                }
+            }
+        }
+
+        this.x = newX;
+        this.y = newY;
+        enemyTankView.setX(newX);
+        enemyTankView.setY(newY);
+        isAlive = true;
+        pane.getChildren().add(enemyTankView);
+        animation.start();
+        startShooting();
+    }
+
+
+    public void destroy() {
+        if (!isAlive) return;
+
+        isAlive = false;
+
+        pane.getChildren().remove(enemyTankView);
+        if (shootingTimer != null) {
+            shootingTimer.stop();
+        }
+
+        Image explosionImage = new Image(getClass().getResource("/explosion.png").toExternalForm());
+        ImageView explosion = new ImageView(explosionImage);
+        explosion.setFitWidth(40);
+        explosion.setFitHeight(40);
+        explosion.setX(x - 7.5);
+        explosion.setY(y - 7.5);
+        pane.getChildren().add(explosion);
+
+        TankGame2025.updateScore(100);
+
+        new Timeline(new KeyFrame(Duration.millis(500), e -> {
+            pane.getChildren().remove(explosion);
+            respawn();
+        })).play();
+    }
+
+    public boolean isAlive() {
+        return isAlive;
+    }
 }
+
 
 
