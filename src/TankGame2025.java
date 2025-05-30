@@ -28,6 +28,7 @@ public class TankGame2025 extends Application {
 
     public void start(Stage firstStage) {
 
+        firstStage.setTitle("TankGame 2025");
         Pane main = new Pane();
         Pane ui = new Pane();
 
@@ -94,7 +95,7 @@ public class TankGame2025 extends Application {
         ArrayList<ImageView> bullets = new ArrayList<>();
         ArrayList<ImageView> walls = new ArrayList<>();
 
-        scene.setFill(Color.BLACK);
+        all.setStyle("-fx-background-color: black;");
 
         Moving.moveTank(scene, player, animation, map.getWalls(), main, bullets);
 
@@ -142,6 +143,10 @@ public class TankGame2025 extends Application {
         Moving.stopAllTimers();
         Moving.stopAllEnemies();
 
+        if (Moving.getPauseMenu() != null) {
+            Moving.getPauseMenu().setVisible(false);
+        }
+
         for (Enemy enemy : enemies) {
             enemy.stopMovement();
             enemy.stopAnimation();
@@ -164,10 +169,6 @@ public class TankGame2025 extends Application {
 
     public static Scene getScene() {
         return gameScene;
-    }
-
-    public static boolean isPlayerInvulnerable() {
-        return !Moving.isMovementEnabled();
     }
 
     public static void main(String[] args) {

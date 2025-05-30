@@ -26,6 +26,7 @@ public class Enemy {
     private static final Image bulletImage = new Image(Enemy.class.getResource("/bullet.png").toExternalForm());
     private boolean isAlive = true;
     private static ArrayList<ImageView> enemyBullets = new ArrayList<>();
+    private boolean isMoving = false;
 
     public Enemy(Pane pane, double x, double y, ArrayList<ImageView> walls) {
         this.pane = pane;
@@ -34,6 +35,7 @@ public class Enemy {
         this.walls = walls;
         enemyTankImage = new Image(getClass().getResource("/whiteTank1.png").toExternalForm());
         enemyTankView = new ImageView(enemyTankImage);
+
 
         enemyTankView.setFitWidth(25);
         enemyTankView.setFitHeight(25);
@@ -110,11 +112,13 @@ public class Enemy {
     }
 
     private void startShooting() {
-        shootingTimer = new Timeline(new KeyFrame(Duration.seconds(getRandomIntervalSeconds()), e -> {
-            shoot();
-            startShooting();
-        }));
-        shootingTimer.setCycleCount(1);
+        if (shootingTimer != null) {
+            shootingTimer.stop();
+        }
+        shootingTimer = new Timeline(
+                new KeyFrame(Duration.seconds(getRandomIntervalSeconds()), e -> shoot())
+        );
+        shootingTimer.setCycleCount(Timeline.INDEFINITE);
         shootingTimer.play();
     }
 
@@ -266,11 +270,30 @@ public class Enemy {
         if (shootingTimer != null) {
             shootingTimer.stop();
         }
+        if (animation != null) {
+            animation.stop();
+        }
+        isMoving = false;
     }
 
     public void stopAnimation() {
         if (animation != null) {
             animation.stop();
+        }
+    }
+
+    public void startMovement() {
+        if (!isMoving) {
+            if (movementTimer != null) {
+                movementTimer.start();
+            }
+            if (animation != null) {
+                animation.start();
+            }
+            if (shootingTimer != null) {
+                shootingTimer.play();
+            }
+            isMoving = true;
         }
     }
 }

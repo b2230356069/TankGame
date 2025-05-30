@@ -1,15 +1,21 @@
 import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 
 public class Moving {
@@ -23,17 +29,27 @@ public class Moving {
     private static ArrayList<AnimationTimer> activeTimers = new ArrayList<>();
     private static final long SHOOT_COOLDOWN_MS = 1000; // 0.5 saniye cooldown
     private static long lastShotTime = 0;
+    private static boolean isPaused = false;
+    private static Pane pauseMenu;
 
     public static void moveTank(Scene scene, ImageView tank, Animation animation, ArrayList<ImageView> walls, Pane main, ArrayList<ImageView> bullets) {
+
+        createPauseMenu(main, scene);
 
         final Set<KeyCode> pressedKeys = new HashSet<>();
 
         scene.setOnKeyPressed(event -> {
-            pressedKeys.add(event.getCode());
+            if (event.getCode() == KeyCode.ESCAPE) {
+                System.exit(0);
+            } else if (event.getCode() == KeyCode.P) {
+                togglePause(main);
+            } else if (!isPaused) {
+                pressedKeys.add(event.getCode());
 
-            if (event.getCode() == KeyCode.X && !isShooting && movementEnabled) {
-                shoot(main, tank, bullets, walls, TankGame2025.getEnemies());
-                isShooting = true;
+                if (event.getCode() == KeyCode.X && !isShooting && movementEnabled) {
+                    shoot(main, tank, bullets, walls, TankGame2025.getEnemies());
+                    isShooting = true;
+                }
             }
         });
 
@@ -255,5 +271,66 @@ public class Moving {
         for (Enemy enemy : TankGame2025.getEnemies()) {
             enemy.stopMovement();
         }
+    }
+
+    private static void createPauseMenu(Pane main, Scene scene) {
+        pauseMenu = new Pane();
+        pauseMenu.setVisible(false);
+
+        Rectangle bg = new Rectangle(scene.getWidth(), scene.getHeight(), Color.TRANSPARENT);
+
+        Text pauseText = new Text("PAUSED");
+        pauseText.setFont(Font.font("Arial", FontWeight.BOLD, 60));
+        pauseText.setFill(Color.WHITE);
+        pauseText.setX(scene.getWidth()/2 - pauseText.getLayoutBounds().getWidth()/2);
+        pauseText.setY(scene.getHeight()/2 - 50);
+
+        Text resumeText = new Text("Press P to Resume");
+        resumeText.setFont(Font.font("Arial", 30));
+        resumeText.setFill(Color.WHITE);
+        resumeText.setX(scene.getWidth()/2 - resumeText.getLayoutBounds().getWidth()/2);
+        resumeText.setY(scene.getHeight()/2 + 20);
+
+        Text exitText = new Text("Press ESC to Exit");
+        exitText.setFont(Font.font("Arial", 30));
+        exitText.setFill(Color.WHITE);
+        exitText.setX(scene.getWidth()/2 - exitText.getLayoutBounds().getWidth()/2);
+        exitText.setY(scene.getHeight()/2 + 70);
+
+        pauseMenu.getChildren().addAll(bg, pauseText, resumeText, exitText);
+
+        main.getChildren().add(pauseMenu);
+    }
+
+    private static void togglePause(Pane main) {
+        isPaused = !isPaused;
+        pauseMenu.setVisible(isPaused);
+        setMovementEnabled(!isPaused);
+
+        if (isPaused) {
+            for (Node node : main.getChildren()) {
+                if (node != pauseMenu) {
+                    node.setOpacity(0.5);
+                }
+            }
+            stopAllTimers();
+            for (Enemy enemy : TankGame2025.getEnemies()) {
+                enemy.stopMovement();
+                enemy.stopAnimation();
+            }
+        } else {
+            for (Node node : main.getChildren()) {
+                node.setOpacity(1.0);
+            }
+            collisionTimer.start();
+            movementTimer.start();
+            for (Enemy enemy : TankGame2025.getEnemies()) {
+                enemy.startMovement();
+            }
+        }
+    }
+
+    public static Pane getPauseMenu() {
+        return pauseMenu;
     }
 }
