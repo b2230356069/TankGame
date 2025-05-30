@@ -20,18 +20,17 @@ public class Enemy {
     private ArrayList<ImageView> walls;
     private EnemyAnimation animation;
     private ArrayList<ImageView> bullets = new ArrayList<>();
+    private AnimationTimer movementTimer;
     private Timeline shootingTimer;
     private static final double bulletSpeed = 3;
     private static final Image bulletImage = new Image(Enemy.class.getResource("/bullet.png").toExternalForm());
     private boolean isAlive = true;
-    private double respawnX, respawnY;
+    private static ArrayList<ImageView> enemyBullets = new ArrayList<>();
 
     public Enemy(Pane pane, double x, double y, ArrayList<ImageView> walls) {
         this.pane = pane;
         this.x = x;
         this.y = y;
-        this.respawnX = x;
-        this.respawnY = y;
         this.walls = walls;
         enemyTankImage = new Image(getClass().getResource("/whiteTank1.png").toExternalForm());
         enemyTankView = new ImageView(enemyTankImage);
@@ -54,15 +53,15 @@ public class Enemy {
     private void setRandomDirection() {
         int direction = random.nextInt(4);
         switch (direction) {
-            case 0 -> { dx = 0; dy = -1; enemyTankView.setRotate(270); }
-            case 1 -> { dx = 0; dy = 1; enemyTankView.setRotate(90); }
-            case 2 -> { dx = -1; dy = 0; enemyTankView.setRotate(180); }
-            case 3 -> { dx = 1; dy = 0; enemyTankView.setRotate(0); }
+            case 0 -> { dx = 0; dy = -1.25; enemyTankView.setRotate(270); }
+            case 1 -> { dx = 0; dy = 1.25; enemyTankView.setRotate(90); }
+            case 2 -> { dx = -1.25; dy = 0; enemyTankView.setRotate(180); }
+            case 3 -> { dx = 1.25; dy = 0; enemyTankView.setRotate(0); }
         }
     }
 
     private void startMoving() {
-        AnimationTimer timer = new AnimationTimer() {
+        movementTimer = new AnimationTimer() {
 
             private int changeIntervalMillis = (int) (getRandomIntervalSeconds() * 1000);
             private long lastDirectionChangeTimeMillis = System.currentTimeMillis();
@@ -107,7 +106,7 @@ public class Enemy {
                 }
             }
         };
-        timer.start();
+        movementTimer.start();
     }
 
     private void startShooting() {
@@ -127,6 +126,10 @@ public class Enemy {
         return enemyTankView;
     }
 
+    public static ArrayList<ImageView> getEnemyBullets() {
+        return enemyBullets;
+    }
+
     private void shoot() {
         ImageView bullet = new ImageView(bulletImage);
         bullet.setFitWidth(5);
@@ -138,13 +141,23 @@ public class Enemy {
         bullet.setX(tankCenterX - bullet.getFitWidth() / 2);
         bullet.setY(tankCenterY - bullet.getFitHeight() / 2);
 
+        enemyBullets.add(bullet);
         pane.getChildren().add(bullet);
-        bullets.add(bullet);
 
         double bulletAngle = enemyTankView.getRotate();
 
-        new AnimationTimer() {
+        AnimationTimer bulletTimer = new AnimationTimer() {
+            private boolean active = true;
+
             public void handle(long now) {
+                if (!active || !Moving.isMovementEnabled()) {
+
+                    pane.getChildren().remove(bullet);
+                    enemyBullets.remove(bullet);
+                    this.stop();
+                    return;
+                }
+
                 double dx = 0;
                 double dy = 0;
 
@@ -178,7 +191,7 @@ public class Enemy {
                     }
                 }
             }
-        }.start();
+        };bulletTimer.start();
     }
 
     private void respawn() {
@@ -244,6 +257,21 @@ public class Enemy {
 
     public boolean isAlive() {
         return isAlive;
+    }
+
+    public void stopMovement() {
+        if (movementTimer != null) {
+            movementTimer.stop();
+        }
+        if (shootingTimer != null) {
+            shootingTimer.stop();
+        }
+    }
+
+    public void stopAnimation() {
+        if (animation != null) {
+            animation.stop();
+        }
     }
 }
 
