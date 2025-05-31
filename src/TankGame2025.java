@@ -25,6 +25,9 @@ public class TankGame2025 extends Application {
     private static Text restartText;
     private static Pane gameOverPane;
     private static Animation animation;
+    private static Pane mainPane;
+    private static Pane uiPane;
+    private static StackPane stackPane;
 
     public void start(Stage firstStage) {
 
@@ -32,8 +35,13 @@ public class TankGame2025 extends Application {
         Pane main = new Pane();
         Pane ui = new Pane();
 
+
         StackPane all = new StackPane();
         all.getChildren().addAll(main, ui);
+
+        mainPane = main;
+        uiPane = ui;
+        stackPane = all;
 
         int sceneWidth = 1000;
         int sceneHeight = 1000;
@@ -65,13 +73,13 @@ public class TankGame2025 extends Application {
         restartText.setFill(Color.WHITE);
 
         gameOverText.setX(main.getWidth()/2 );
-        gameOverText.setY(main.getHeight()/2 + 210);
+        gameOverText.setY(main.getHeight()/2 + 300);
 
         scoreFinalText.setX(main.getWidth()/2);
-        scoreFinalText.setY(main.getHeight()/2 + 260);
+        scoreFinalText.setY(main.getHeight()/2 + 350);
 
         restartText.setX(main.getWidth()/2);
-        restartText.setY(main.getHeight()/2 + 310);
+        restartText.setY(main.getHeight()/2 + 400);
 
         gameOverPane.getChildren().addAll(gameOverText, scoreFinalText, restartText);
         all.getChildren().add(gameOverPane);
@@ -162,13 +170,55 @@ public class TankGame2025 extends Application {
         gameOverPane.setVisible(true);
     }
 
-
     public static ImageView getPlayerTank() {
         return player;
     }
 
     public static Scene getScene() {
         return gameScene;
+    }
+
+    public static void restartGame() {
+        score = 0;
+        lives = 3;
+        scoreText.setText("Score: 0");
+        livesText.setText("Lives: 3");
+
+        for (Enemy enemy : new ArrayList<>(enemies)) {
+            enemy.stopMovement();
+            enemy.stopAnimation();
+            mainPane.getChildren().remove(enemy.getView());
+        }
+        enemies.clear();
+
+        Moving.clearBullets();
+
+        player.setX(250);
+        player.setY(250);
+        player.setRotate(0);
+        player.setVisible(true);
+
+        Moving.setMovementEnabled(true);
+        Moving.stopAllTimers();
+        animation.start();
+
+        mainPane.getChildren().removeIf(node -> node instanceof ImageView && node != player);
+        Map map = new Map(mainPane, 1000, 1000);
+        map.createExtraWalls(mainPane);
+
+        enemies.add(new Enemy(mainPane, 100, 700, map.getWalls()));
+        enemies.add(new Enemy(mainPane, 700, 100, map.getWalls()));
+        enemies.add(new Enemy(mainPane, 700, 700, map.getWalls()));
+        enemies.add(new Enemy(mainPane, 400, 400, map.getWalls()));
+        enemies.add(new Enemy(mainPane, 400, 600, map.getWalls()));
+        enemies.add(new Enemy(mainPane, 600, 400, map.getWalls()));
+        enemies.add(new Enemy(mainPane, 600, 600, map.getWalls()));
+
+        gameOverPane.setVisible(false);
+
+        Moving.moveTank(gameScene, player, animation, map.getWalls(), mainPane, new ArrayList<>());
+
+        updateCamera(mainPane, player, gameScene);
     }
 
     public static void main(String[] args) {

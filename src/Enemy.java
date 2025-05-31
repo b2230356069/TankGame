@@ -155,9 +155,7 @@ public class Enemy {
 
             public void handle(long now) {
                 if (!active || !Moving.isMovementEnabled()) {
-
-                    pane.getChildren().remove(bullet);
-                    enemyBullets.remove(bullet);
+                    cleanupBullet(bullet);
                     this.stop();
                     return;
                 }
@@ -175,8 +173,6 @@ public class Enemy {
 
                 for (ImageView wall : walls) {
                     if (bullet.getBoundsInParent().intersects(wall.getBoundsInParent())) {
-                        pane.getChildren().remove(bullet);
-                        bullets.remove(bullet);
 
                         Image explosionImage = new Image(Enemy.class.getResource("/smallExplosion.png").toExternalForm());
                         ImageView explosion = new ImageView(explosionImage);
@@ -190,12 +186,20 @@ public class Enemy {
                             pane.getChildren().remove(explosion);
                         })).play();
 
-                        stop();
+                        cleanupBullet(bullet);
+                        this.stop();
                         return;
                     }
                 }
             }
-        };bulletTimer.start();
+        };
+        bulletTimer.start();
+    }
+
+    private void cleanupBullet(ImageView bullet) {
+        pane.getChildren().remove(bullet);
+        bullets.remove(bullet);
+        enemyBullets.remove(bullet);
     }
 
     private void respawn() {

@@ -31,6 +31,8 @@ public class Moving {
     private static long lastShotTime = 0;
     private static boolean isPaused = false;
     private static Pane pauseMenu;
+    private static ArrayList<ImageView> playerBullets;
+    private static ArrayList<AnimationTimer> bulletTimers;
 
     public static void moveTank(Scene scene, ImageView tank, Animation animation, ArrayList<ImageView> walls, Pane main, ArrayList<ImageView> bullets) {
 
@@ -43,6 +45,8 @@ public class Moving {
                 System.exit(0);
             } else if (event.getCode() == KeyCode.P) {
                 togglePause(main);
+            } else if (event.getCode() == KeyCode.R) {
+                TankGame2025.restartGame();
             } else if (!isPaused) {
                 pressedKeys.add(event.getCode());
 
@@ -152,6 +156,7 @@ public class Moving {
 
         AnimationTimer bulletTimer = new AnimationTimer() {
             public void handle(long now) {
+
                 double dx = 0;
                 double dy = 0;
 
@@ -282,20 +287,20 @@ public class Moving {
         Text pauseText = new Text("PAUSED");
         pauseText.setFont(Font.font("Arial", FontWeight.BOLD, 60));
         pauseText.setFill(Color.WHITE);
-        pauseText.setX(scene.getWidth()/2 - pauseText.getLayoutBounds().getWidth()/2);
-        pauseText.setY(scene.getHeight()/2 - 50);
+        pauseText.setX(scene.getWidth() / 2 - pauseText.getLayoutBounds().getWidth() / 2);
+        pauseText.setY(scene.getHeight() / 2 - 50);
 
         Text resumeText = new Text("Press P to Resume");
         resumeText.setFont(Font.font("Arial", 30));
         resumeText.setFill(Color.WHITE);
-        resumeText.setX(scene.getWidth()/2 - resumeText.getLayoutBounds().getWidth()/2);
-        resumeText.setY(scene.getHeight()/2 + 20);
+        resumeText.setX(scene.getWidth() / 2 - resumeText.getLayoutBounds().getWidth() / 2);
+        resumeText.setY(scene.getHeight() / 2);
 
         Text exitText = new Text("Press ESC to Exit");
         exitText.setFont(Font.font("Arial", 30));
         exitText.setFill(Color.WHITE);
-        exitText.setX(scene.getWidth()/2 - exitText.getLayoutBounds().getWidth()/2);
-        exitText.setY(scene.getHeight()/2 + 70);
+        exitText.setX(scene.getWidth() / 2 - exitText.getLayoutBounds().getWidth() / 2);
+        exitText.setY(scene.getHeight() / 2 + 50);
 
         pauseMenu.getChildren().addAll(bg, pauseText, resumeText, exitText);
 
@@ -332,5 +337,38 @@ public class Moving {
 
     public static Pane getPauseMenu() {
         return pauseMenu;
+    }
+
+    public static void clearBullets() {
+        // Clear player bullets
+        if (playerBullets != null) {
+            for (ImageView bullet : playerBullets) {
+                if (bullet != null && bullet.getParent() != null) {
+                    ((Pane) bullet.getParent()).getChildren().remove(bullet);
+                }
+            }
+            playerBullets.clear();
+        }
+
+        // Clear enemy bullets
+        ArrayList<ImageView> enemyBullets = Enemy.getEnemyBullets();
+        if (enemyBullets != null) {
+            for (ImageView bullet : enemyBullets) {
+                if (bullet != null && bullet.getParent() != null) {
+                    ((Pane) bullet.getParent()).getChildren().remove(bullet);
+                }
+            }
+            enemyBullets.clear();
+        }
+
+        // Stop any bullet timers if they exist
+        if (bulletTimers != null) {
+            for (AnimationTimer timer : bulletTimers) {
+                if (timer != null) {
+                    timer.stop();
+                }
+            }
+            bulletTimers.clear();
+        }
     }
 }
