@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -11,8 +12,9 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import java.util.ArrayList;
 
-public class TankGame2025 extends Application {
+public class Main extends Application {
 
+    //In this part you can see variables we are going to use.
     private static int score = 0;
     private static Text scoreText;
     private static ArrayList<Enemy> enemies = new ArrayList<>();
@@ -31,11 +33,12 @@ public class TankGame2025 extends Application {
 
     public void start(Stage firstStage) {
 
+        // Here, we create our main pane, our title, and our ui pane for score and lives.
         firstStage.setTitle("TankGame 2025");
         Pane main = new Pane();
         Pane ui = new Pane();
 
-
+        //We combine them in here in a full StackPane
         StackPane all = new StackPane();
         all.getChildren().addAll(main, ui);
 
@@ -43,11 +46,13 @@ public class TankGame2025 extends Application {
         uiPane = ui;
         stackPane = all;
 
+        //We create our map
         int sceneWidth = 1000;
         int sceneHeight = 1000;
         Map map = new Map(main, sceneWidth, sceneHeight);
         map.createExtraWalls(main);
 
+        //Text parts for score, lives, game over scene.
         scoreText = new Text(20, 30, "Score: 0");
         scoreText.setFont(Font.font("Arial", 20));
         scoreText.setFill(Color.WHITE);
@@ -86,6 +91,7 @@ public class TankGame2025 extends Application {
 
         ui.getChildren().addAll(scoreText, livesText);
 
+        //Creating our player tank.
         player = new ImageView();
         player.setImage(new Image(getClass().getResource("/yellowTank1.png").toExternalForm()));
 
@@ -99,14 +105,17 @@ public class TankGame2025 extends Application {
 
         animation = new Animation(player);
 
+        // This is our pop-up window. It's a little bit smaller so you can see vertical and horizontal scrolling clearly.
         Scene scene = new Scene(all, 1000, 750);
         ArrayList<ImageView> bullets = new ArrayList<>();
         ArrayList<ImageView> walls = new ArrayList<>();
 
         all.setStyle("-fx-background-color: black;");
 
+        // Our tank can start to move with this command.
         Moving.moveTank(scene, player, animation, map.getWalls(), main, bullets);
 
+        //Adding enemies, they will respawn randomly if they get killed.
         enemies.add(new Enemy(main, 100, 700, map.getWalls()));
         enemies.add(new Enemy(main, 700, 100, map.getWalls()));
         enemies.add(new Enemy(main, 700, 700, map.getWalls()));
@@ -120,10 +129,7 @@ public class TankGame2025 extends Application {
         firstStage.show();
     }
 
-    public static ArrayList<Enemy> getEnemies() {
-        return enemies;
-    }
-
+    // Our vertical and horizontal scrolling method.
     public static void updateCamera(Pane main, ImageView tank, Scene scene) {
         double newX = scene.getWidth() / 2 - (tank.getX() + tank.getFitWidth() / 2);
         double newY = scene.getHeight() / 2 - (tank.getY() + tank.getFitHeight() / 2);
@@ -132,11 +138,13 @@ public class TankGame2025 extends Application {
         main.setTranslateY(newY);
     }
 
+    // Method for updating score
     public static void updateScore(int points) {
         score += points;
         scoreText.setText("Score: " + score);
     }
 
+    // Method for updating lives
     public static void updateLives(int change) {
         lives += change;
         livesText.setText("Lives: " + lives);
@@ -146,6 +154,7 @@ public class TankGame2025 extends Application {
         }
     }
 
+    // Our game over part
     private static void gameOver() {
         Moving.setMovementEnabled(false);
         Moving.stopAllTimers();
@@ -170,15 +179,14 @@ public class TankGame2025 extends Application {
         gameOverPane.setVisible(true);
     }
 
-    public static ImageView getPlayerTank() {
-        return player;
-    }
-
-    public static Scene getScene() {
-        return gameScene;
-    }
-
+    // Our restart game function. Basically restarts everything.
     public static void restartGame() {
+
+        Moving.setPaused(false);
+        if (Moving.getPauseMenu() != null) {
+            Moving.getPauseMenu().setVisible(false);
+        }
+
         score = 0;
         lives = 3;
         scoreText.setText("Score: 0");
@@ -219,6 +227,28 @@ public class TankGame2025 extends Application {
         Moving.moveTank(gameScene, player, animation, map.getWalls(), mainPane, new ArrayList<>());
 
         updateCamera(mainPane, player, gameScene);
+
+        for (Node node : mainPane.getChildren()) {
+            node.setOpacity(1.0);
+        }
+    }
+
+    // A game over status for to use in other methods.
+    public static boolean isGameOver() {
+        return lives <= 0;
+    }
+
+    //  Getter methods.
+    public static ImageView getPlayerTank() {
+        return player;
+    }
+
+    public static Scene getScene() {
+        return gameScene;
+    }
+
+    public static ArrayList<Enemy> getEnemies() {
+        return enemies;
     }
 
     public static void main(String[] args) {

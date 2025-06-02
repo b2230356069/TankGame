@@ -4,6 +4,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 
+//Animation class for enemy tanks.
 public class EnemyAnimation {
     private Image enemyTank1;
     private Image enemyTank2;

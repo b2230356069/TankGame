@@ -3,6 +3,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import java.util.ArrayList;
 
+// We create our map here
 public class Map {
     private final int blockSize = 25;
     private final int width;

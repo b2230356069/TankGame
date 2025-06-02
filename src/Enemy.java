@@ -29,6 +29,8 @@ public class Enemy {
     private boolean isMoving = false;
 
     public Enemy(Pane pane, double x, double y, ArrayList<ImageView> walls) {
+
+        //In this part you can see variables we are going to use.
         this.pane = pane;
         this.x = x;
         this.y = y;
@@ -52,6 +54,7 @@ public class Enemy {
         startShooting();
     }
 
+    //In here our enemy decides it's direction randomly.
     private void setRandomDirection() {
         int direction = random.nextInt(4);
         switch (direction) {
@@ -62,9 +65,9 @@ public class Enemy {
         }
     }
 
+    // Method for our enemy to move. It's nearly same as the one in the moving except enemy randomly changes direction.
     private void startMoving() {
         movementTimer = new AnimationTimer() {
-
             private int changeIntervalMillis = (int) (getRandomIntervalSeconds() * 1000);
             private long lastDirectionChangeTimeMillis = System.currentTimeMillis();
 
@@ -81,6 +84,13 @@ public class Enemy {
                         blocked = true;
                         break;
                     }
+                }
+
+                if (enemyTankView.getBoundsInParent().intersects(Main.getPlayerTank().getBoundsInParent())) {
+                    blocked = true;
+                    destroy();
+                    Main.updateLives(-1);
+                    Moving.explodeTank(pane, Main.getPlayerTank());
                 }
 
                 if (blocked) {
@@ -111,6 +121,7 @@ public class Enemy {
         movementTimer.start();
     }
 
+    // Method for our enemy to enable shoot.
     private void startShooting() {
         if (shootingTimer != null) {
             shootingTimer.stop();
@@ -122,18 +133,7 @@ public class Enemy {
         shootingTimer.play();
     }
 
-    private double getRandomIntervalSeconds() {
-        return 1 + random.nextDouble() * 4;
-    }
-
-    public ImageView getView() {
-        return enemyTankView;
-    }
-
-    public static ArrayList<ImageView> getEnemyBullets() {
-        return enemyBullets;
-    }
-
+    //Method for our enemy to shoot. It's nearly same as the one in the moving except enemy shoots randomly.
     private void shoot() {
         ImageView bullet = new ImageView(bulletImage);
         bullet.setFitWidth(5);
@@ -196,12 +196,14 @@ public class Enemy {
         bulletTimer.start();
     }
 
+    //Cleans bullet of enemies if they crash into something.
     private void cleanupBullet(ImageView bullet) {
         pane.getChildren().remove(bullet);
         bullets.remove(bullet);
         enemyBullets.remove(bullet);
     }
 
+    // Respawn method for our enemies. They respawn in random locations after dying.
     private void respawn() {
         Random random = new Random();
         boolean validPosition = false;
@@ -236,7 +238,7 @@ public class Enemy {
         startShooting();
     }
 
-
+    // Destroy method for tank after they die.
     public void destroy() {
         if (!isAlive) return;
 
@@ -255,7 +257,7 @@ public class Enemy {
         explosion.setY(y - 7.5);
         pane.getChildren().add(explosion);
 
-        TankGame2025.updateScore(100);
+        Main.updateScore(100);
 
         new Timeline(new KeyFrame(Duration.millis(500), e -> {
             pane.getChildren().remove(explosion);
@@ -263,10 +265,12 @@ public class Enemy {
         })).play();
     }
 
+    //A status for tank to be alive.
     public boolean isAlive() {
         return isAlive;
     }
 
+    //Method to block our tank's movement.
     public void stopMovement() {
         if (movementTimer != null) {
             movementTimer.stop();
@@ -280,12 +284,7 @@ public class Enemy {
         isMoving = false;
     }
 
-    public void stopAnimation() {
-        if (animation != null) {
-            animation.stop();
-        }
-    }
-
+    //Method to enable our tank's movement.
     public void startMovement() {
         if (!isMoving) {
             if (movementTimer != null) {
@@ -299,6 +298,26 @@ public class Enemy {
             }
             isMoving = true;
         }
+    }
+
+    //Method to stop animation of tanks
+    public void stopAnimation() {
+        if (animation != null) {
+            animation.stop();
+        }
+    }
+
+    // Getter methods.
+    private double getRandomIntervalSeconds() {
+        return 1 + random.nextDouble() * 4;
+    }
+
+    public ImageView getView() {
+        return enemyTankView;
+    }
+
+    public static ArrayList<ImageView> getEnemyBullets() {
+        return enemyBullets;
     }
 }
 

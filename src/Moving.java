@@ -20,6 +20,7 @@ import javafx.scene.shape.Rectangle;
 
 public class Moving {
 
+    //In this part you can see variables we are going to use.
     private static boolean isShooting = false;
     private static final double bulletSpeed = 3;
     private static final Image bulletImage = new Image(Moving.class.getResource("/bullet.png").toExternalForm());
@@ -34,24 +35,31 @@ public class Moving {
     private static ArrayList<ImageView> playerBullets;
     private static ArrayList<AnimationTimer> bulletTimers;
 
+
+    // Function to move player's tank.
     public static void moveTank(Scene scene, ImageView tank, Animation animation, ArrayList<ImageView> walls, Pane main, ArrayList<ImageView> bullets) {
 
         createPauseMenu(main, scene);
 
         final Set<KeyCode> pressedKeys = new HashSet<>();
 
+        // Creating key combinations that we are going to play game.
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ESCAPE) {
-                System.exit(0);
+                if (isPaused || Main.isGameOver()) {
+                    System.exit(0);
+                }
             } else if (event.getCode() == KeyCode.P) {
                 togglePause(main);
             } else if (event.getCode() == KeyCode.R) {
-                TankGame2025.restartGame();
+                if (isPaused || Main.isGameOver()) {
+                    Main.restartGame();
+                }
             } else if (!isPaused) {
                 pressedKeys.add(event.getCode());
 
                 if (event.getCode() == KeyCode.X && !isShooting && movementEnabled) {
-                    shoot(main, tank, bullets, walls, TankGame2025.getEnemies());
+                    shoot(main, tank, bullets, walls, Main.getEnemies());
                     isShooting = true;
                 }
             }
@@ -68,7 +76,7 @@ public class Moving {
         collisionTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                reduceHP(main, TankGame2025.getPlayerTank(), Enemy.getEnemyBullets());
+                reduceHP(main, Main.getPlayerTank(), Enemy.getEnemyBullets());
             }
         };
         collisionTimer.start();
@@ -80,6 +88,7 @@ public class Moving {
                 double dx = 0;
                 double dy = 0;
 
+                // In here we rotate our tank and make it move.
                 if (pressedKeys.contains(KeyCode.UP)) {
                     tank.setRotate(270);
                     dy = -1.25;
@@ -101,6 +110,7 @@ public class Moving {
                     tank.setX(nextX);
                     tank.setY(nextY);
 
+                    // It can't move if there is a wall.
                     boolean blocked = false;
                     for (ImageView wall : walls) {
                         if (tank.getBoundsInParent().intersects(wall.getBoundsInParent())) {
@@ -115,7 +125,7 @@ public class Moving {
                         animation.stop();
                     } else {
                         animation.start();
-                        TankGame2025.updateCamera(main, tank, scene);
+                        Main.updateCamera(main, tank, scene);
                     }
 
                 } else {
@@ -127,6 +137,7 @@ public class Moving {
 
     }
 
+    //Shooting method for player's tank.
     private static void shoot(Pane main, ImageView tank, ArrayList<ImageView> bullets, ArrayList<ImageView> walls, ArrayList<Enemy> enemies) {
         if (!isMovementEnabled()) return;
 
@@ -135,8 +146,10 @@ public class Moving {
             return;
         }
 
+        // Cooldown part for shooting
         lastShotTime = currentTime;
 
+        //Creating our bullet
         ImageView bullet = new ImageView(bulletImage);
         bullet.setFitWidth(5);
         bullet.setFitHeight(5);
@@ -160,6 +173,7 @@ public class Moving {
                 double dx = 0;
                 double dy = 0;
 
+                // It shoots wherever tank's looking.
                 if (bulletAngle == 0) dx = bulletSpeed;
                 else if (bulletAngle == 180) dx = -bulletSpeed;
                 else if (bulletAngle == 90) dy = bulletSpeed;
@@ -173,6 +187,7 @@ public class Moving {
                         main.getChildren().remove(bullet);
                         bullets.remove(bullet);
 
+                        // Creating our small explosion for our bullets if they crash into walls.
                         Image explosionImage = new Image(Moving.class.getResource("/smallExplosion.png").toExternalForm());
                         ImageView explosion = new ImageView(explosionImage);
                         explosion.setFitWidth(10);
@@ -207,57 +222,66 @@ public class Moving {
         bulletTimer.start();
     }
 
+    //A status for give permission to tank for moving.
     public static boolean isMovementEnabled() {
         return movementEnabled;
     }
 
-    public static void setMovementEnabled(boolean enabled) {
-        movementEnabled = enabled;
-    }
-
+    //Method for to reduce hp of player's tank if it gets hit or crah to another tank.
     private static void reduceHP(Pane main, ImageView playerTank, ArrayList<ImageView> enemyBullets) {
-
-        if (!movementEnabled) return;
+        if (!movementEnabled || Main.isGameOver()) return;
 
         for (ImageView bullet : new ArrayList<>(enemyBullets)) {
             if (bullet.getBoundsInParent().intersects(playerTank.getBoundsInParent())) {
-                for (ImageView eb : new ArrayList<>(enemyBullets)) {
-                    eb.setVisible(false);
-                    main.getChildren().remove(eb);
-                    Enemy.getEnemyBullets().remove(eb);
-                }
-                TankGame2025.updateLives(-1);
 
-                Image explosion = new Image(Moving.class.getResource("/explosion.png").toExternalForm());
-                ImageView ex = new ImageView(explosion);
-                ex.setFitWidth(40);
-                ex.setFitHeight(40);
-                ex.setX(playerTank.getX() + playerTank.getFitWidth() / 2 - 20);
-                ex.setY(playerTank.getY() + playerTank.getFitHeight() / 2 - 20);
-                main.getChildren().add(ex);
+                main.getChildren().remove(bullet);
+                enemyBullets.remove(bullet);
 
-                playerTank.setVisible(false);
-                setMovementEnabled(false);
-
-                new Timeline(new KeyFrame(Duration.millis(1000), e -> {
-
-                    main.getChildren().remove(ex);
+                Main.updateLives(-1);
+                explodeTank(main, playerTank);
+                break;
+            }
+        }
 
 
-                    playerTank.setX(250);
-                    playerTank.setY(250);
-                    playerTank.setVisible(true);
-                    TankGame2025.updateCamera(main, playerTank, TankGame2025.getScene());
-
-                    playerTank.setRotate(0);
-                    setMovementEnabled(true);
-                })).play();
-
+        for (Enemy enemy : Main.getEnemies()) {
+            if (enemy.isAlive() && playerTank.getBoundsInParent().intersects(enemy.getView().getBoundsInParent())) {
+                Main.updateLives(-1);
+                explodeTank(main, playerTank);
+                enemy.destroy();
                 break;
             }
         }
     }
 
+    //Explosion effect for deaths.
+    public static void explodeTank(Pane main, ImageView tank) {
+        Image explosion = new Image(Moving.class.getResource("/explosion.png").toExternalForm());
+        ImageView ex = new ImageView(explosion);
+        ex.setFitWidth(40);
+        ex.setFitHeight(40);
+        ex.setX(tank.getX() + tank.getFitWidth() / 2 - 20);
+        ex.setY(tank.getY() + tank.getFitHeight() / 2 - 20);
+        main.getChildren().add(ex);
+
+        tank.setVisible(false);
+        setMovementEnabled(false);
+
+        new Timeline(new KeyFrame(Duration.millis(500), e -> {
+            main.getChildren().remove(ex);
+
+            if (!Main.isGameOver()) {
+                tank.setX(250);
+                tank.setY(250);
+                tank.setVisible(true);
+                Main.updateCamera(main, tank, Main.getScene());
+                tank.setRotate(0);
+                setMovementEnabled(true);
+            }
+        })).play();
+    }
+
+    // This method stops timers if game is paused or game is over.
     public static void stopAllTimers() {
         if (collisionTimer != null) {
             collisionTimer.stop();
@@ -272,41 +296,46 @@ public class Moving {
         activeTimers.clear();
     }
 
+    // This method stops enemies if game is paused or game is over.
     public static void stopAllEnemies() {
-        for (Enemy enemy : TankGame2025.getEnemies()) {
+        for (Enemy enemy : Main.getEnemies()) {
             enemy.stopMovement();
         }
     }
 
+    //In here we create our pause menu.
     private static void createPauseMenu(Pane main, Scene scene) {
         pauseMenu = new Pane();
         pauseMenu.setVisible(false);
 
-        Rectangle bg = new Rectangle(scene.getWidth(), scene.getHeight(), Color.TRANSPARENT);
+        Rectangle bg = new Rectangle(scene.getWidth(), scene.getHeight(), Color.rgb(0, 0, 0, 0.7));
 
         Text pauseText = new Text("PAUSED");
         pauseText.setFont(Font.font("Arial", FontWeight.BOLD, 60));
         pauseText.setFill(Color.WHITE);
-        pauseText.setX(scene.getWidth() / 2 - pauseText.getLayoutBounds().getWidth() / 2);
-        pauseText.setY(scene.getHeight() / 2 - 50);
 
         Text resumeText = new Text("Press P to Resume");
         resumeText.setFont(Font.font("Arial", 30));
         resumeText.setFill(Color.WHITE);
-        resumeText.setX(scene.getWidth() / 2 - resumeText.getLayoutBounds().getWidth() / 2);
-        resumeText.setY(scene.getHeight() / 2);
 
         Text exitText = new Text("Press ESC to Exit");
         exitText.setFont(Font.font("Arial", 30));
         exitText.setFill(Color.WHITE);
-        exitText.setX(scene.getWidth() / 2 - exitText.getLayoutBounds().getWidth() / 2);
-        exitText.setY(scene.getHeight() / 2 + 50);
+
+        pauseText.setLayoutX(scene.getWidth() / 2 - pauseText.getLayoutBounds().getWidth() / 2);
+        pauseText.setLayoutY(scene.getHeight() / 2 - 50);
+
+        resumeText.setLayoutX(scene.getWidth() / 2 - resumeText.getLayoutBounds().getWidth() / 2);
+        resumeText.setLayoutY(scene.getHeight() / 2 + 20);
+
+        exitText.setLayoutX(scene.getWidth() / 2 - exitText.getLayoutBounds().getWidth() / 2);
+        exitText.setLayoutY(scene.getHeight() / 2 + 70);
 
         pauseMenu.getChildren().addAll(bg, pauseText, resumeText, exitText);
-
         main.getChildren().add(pauseMenu);
     }
 
+    // And this part is for usage of pause menu.
     private static void togglePause(Pane main) {
         isPaused = !isPaused;
         pauseMenu.setVisible(isPaused);
@@ -319,7 +348,7 @@ public class Moving {
                 }
             }
             stopAllTimers();
-            for (Enemy enemy : TankGame2025.getEnemies()) {
+            for (Enemy enemy : Main.getEnemies()) {
                 enemy.stopMovement();
                 enemy.stopAnimation();
             }
@@ -329,18 +358,14 @@ public class Moving {
             }
             collisionTimer.start();
             movementTimer.start();
-            for (Enemy enemy : TankGame2025.getEnemies()) {
+            for (Enemy enemy : Main.getEnemies()) {
                 enemy.startMovement();
             }
         }
     }
 
-    public static Pane getPauseMenu() {
-        return pauseMenu;
-    }
-
+    // This method clears bullet after bullet crashes into something.
     public static void clearBullets() {
-        // Clear player bullets
         if (playerBullets != null) {
             for (ImageView bullet : playerBullets) {
                 if (bullet != null && bullet.getParent() != null) {
@@ -350,7 +375,6 @@ public class Moving {
             playerBullets.clear();
         }
 
-        // Clear enemy bullets
         ArrayList<ImageView> enemyBullets = Enemy.getEnemyBullets();
         if (enemyBullets != null) {
             for (ImageView bullet : enemyBullets) {
@@ -361,7 +385,6 @@ public class Moving {
             enemyBullets.clear();
         }
 
-        // Stop any bullet timers if they exist
         if (bulletTimers != null) {
             for (AnimationTimer timer : bulletTimers) {
                 if (timer != null) {
@@ -370,5 +393,19 @@ public class Moving {
             }
             bulletTimers.clear();
         }
+    }
+
+    // getter for pause menu
+    public static Pane getPauseMenu() {
+        return pauseMenu;
+    }
+
+    // Several setter methods.
+    public static void setPaused(boolean paused) {
+        isPaused = paused;
+    }
+
+    public static void setMovementEnabled(boolean enabled) {
+        movementEnabled = enabled;
     }
 }

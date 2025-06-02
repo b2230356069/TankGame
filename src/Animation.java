@@ -4,6 +4,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 
+//Aniamtion class for player's tank.
 public class Animation {
 
     private Image tank1;
